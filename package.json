@@ -2,8 +2,8 @@
   "name": "nats-request-multi",
   "version": "1.0.0",
   "description": "Library for making NATS requests that receive multiple responses.",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "dist/requestMulti.js",
+  "types": "dist/requestMulti.d.ts",
   "scripts": {
     "prepare": "npx tsc",
     "pack": "npm pack",

@@ -10,6 +10,10 @@ const TIMEOUT = 0.1;
 const RESPONSE_DELAY = 0.01;
 const subject = "test";
 
+const natsErrorBase = {
+  isAuthError: () => true, isPermissionError: () => false, isProtocolError: () => false, isJetStreamError: () => false, jsError: () => null,
+}
+
 describe("nats-request-multi tests", () => {
   const subscribeMock = jest.fn();
   const publishMock = jest.fn();
@@ -129,9 +133,9 @@ describe("nats-request-multi tests", () => {
     });
 
     it("returns any NATS errors when expected > 1 and received === expected", async () => {
-      const natsError = { code: "err", name: "err", message: "test error" };
+      const natsError = { ...natsErrorBase, code: "err", name: "err", message: "test error" };
       try {
-        await testRequestMulti(3, 3, { natsError: natsError });
+        await testRequestMulti(3, 3, ({ natsError }));
         throw new Error("should throw an error");
       } catch (err) {
         expect(err).toEqual(natsError);
@@ -139,9 +143,9 @@ describe("nats-request-multi tests", () => {
     });
 
     it("returns any NATS errors when expected > 1 and received < expected", async () => {
-      const natsError = { code: "err", name: "err", message: "test error" };
+      const natsError = { ...natsErrorBase, code: "err", name: "err", message: "test error" };
       try {
-        await testRequestMulti(3, 2, { natsError: natsError });
+        await testRequestMulti(3, 2, ({ natsError }));
         throw new Error("should throw an error");
       } catch (err) {
         expect(err).toEqual(natsError);

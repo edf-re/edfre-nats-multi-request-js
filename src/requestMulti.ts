@@ -1,5 +1,5 @@
 import Timeout from "await-timeout";
-import { NatsError, createInbox, JSONCodec, Msg, NatsConnection } from "nats";
+import { NatsError, Msg, NatsConnection } from "nats";
 
 export const requestMultiCallback =
   (
@@ -61,9 +61,15 @@ const requestMulti = async (
     reply: inbox,
   });
 
+  const timeoutReason = "requestMulti NATS Timeout";
   try {
-    await Timeout.wrap(waitAllReceived, timeout, "NATS Timeout");
-  } catch (err) {}
+    await Timeout.wrap(waitAllReceived, timeout, timeoutReason);
+  } catch (err) {
+    // Ignore NATS timeout error
+    if (!(err instanceof Error && err.message === timeoutReason)) {
+      throw err;
+    }
+  }
 
   await inboxSub.unsubscribe();
 

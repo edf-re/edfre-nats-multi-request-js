@@ -1,4 +1,4 @@
-CONTAINER_NAME=nats-request-multi-js_request-multi_1
+CONTAINER_NAME=nats-multi-request-js-request-multi-1
 setup:
 	npm install
 

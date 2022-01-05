@@ -90,7 +90,7 @@ describe("nats-request-multi", () => {
     });
 
     it("fails when 0 received, expected 3", async () => {
-      await expect(requestMultiTest(3, 0)).rejects.toThrow(/timeout/);
+      await expect(requestMultiTest(3, 0)).rejects.toThrow(/[Tt]imeout/);
     });
   });
 });

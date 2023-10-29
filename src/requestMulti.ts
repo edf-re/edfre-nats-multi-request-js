@@ -1,5 +1,5 @@
 import Timeout from "await-timeout";
-import { NatsError, createInbox, JSONCodec, Msg, NatsConnection, Subscription } from "nats";
+import { NatsError, Msg, NatsConnection, Subscription } from "nats";
 /*import * as env from "env-var";
 import * as fs from 'fs';
 import { configure, getLogger } from "log4js";
@@ -92,7 +92,7 @@ const requestMulti = async (
         const msg = await nc.request(subject, payload, {timeout});
         return msg;
       } catch (error) {
-        if (i < 49 && error instanceof NatsError && error.code === "503") {
+        if (i < 49 && error && typeof error == "object" && "code" in error && error.code === "503") {
           //logger.debug("NATS returned code 503, ServiceUnavailableError.  Trying again.");
           continue;
         }
@@ -113,8 +113,8 @@ const requestMulti = async (
           //logger.debug("Done with waitAllReceived.");
         }
       } catch (error) {
-        if (error instanceof NatsError) {
-          natsError = error;
+        if (error && typeof error == "object" && "code" in error) {
+          natsError = error as NatsError;
         } else {
           let errStr = "Unknown";
           if (typeof error === "string") {

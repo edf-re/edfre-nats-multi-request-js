@@ -1,6 +1,6 @@
 import Timeout from "await-timeout";
 import { NatsError, createInbox, JSONCodec, Msg, NatsConnection, Subscription } from "nats";
-import * as env from "env-var";
+/*import * as env from "env-var";
 import * as fs from 'fs';
 import { configure, getLogger } from "log4js";
 
@@ -22,7 +22,7 @@ configure({
     },
   },
 });
-const logger = getLogger();
+const logger = getLogger();*/
 
 export const requestMultiCallback =
   (
@@ -38,11 +38,11 @@ export const requestMultiCallback =
     } else {
       responses.push(msg);
       if (waitAllReceivedResolve && responses.length === expected) {
-        logger.debug("Calling waitAllReceivedResolve");
+        //logger.debug("Calling waitAllReceivedResolve");
         waitAllReceivedResolve(expected);
       }
     }
-    logger.debug(`requestMultiCallback responses.length=${responses.length}, subject=${msg.subject}, sid=${msg.sid}, reply=${msg.reply}, data=${msg.data}`);
+    //logger.debug(`requestMultiCallback responses.length=${responses.length}, subject=${msg.subject}, sid=${msg.sid}, reply=${msg.reply}, data=${msg.data}`);
   };
 
 const requestMulti = async (
@@ -51,7 +51,7 @@ const requestMulti = async (
   payload: Uint8Array,
   { timeout = 0.5, expected = 1 }: { timeout?: number; expected?: number } = {}
 ): Promise<Msg | Msg[]> => {
-  logger.info("requestMulti starting with subject", subject, "payload", payload, "timeout", timeout, "expected", expected);
+  //logger.info("requestMulti starting with subject", subject, "payload", payload, "timeout", timeout, "expected", expected);
 
   if (expected < 1) {
     throw new Error("expected cannot be less than one")
@@ -93,10 +93,10 @@ const requestMulti = async (
         return msg;
       } catch (error) {
         if (i < 49 && error instanceof NatsError && error.code === "503") {
-          logger.debug("NATS returned code 503, ServiceUnavailableError.  Trying again.");
+          //logger.debug("NATS returned code 503, ServiceUnavailableError.  Trying again.");
           continue;
         }
-        logger.error(`nc.request error: ${error} from subject ${subject} with payload '${payload}'`);
+        //logger.error(`nc.request error: ${error} from subject ${subject} with payload '${payload}'`);
         throw error;
       }
     }
@@ -110,7 +110,7 @@ const requestMulti = async (
         // Wait timeout secs for waitAllReceived to complete.
         if (waitAllReceived) {
           await Timeout.wrap(waitAllReceived, timeout * 1000, "NATS Timeout");
-          logger.debug("Done with waitAllReceived.");
+          //logger.debug("Done with waitAllReceived.");
         }
       } catch (error) {
         if (error instanceof NatsError) {
@@ -122,7 +122,7 @@ const requestMulti = async (
           } else if (error && typeof error === "object" && "message" in error) {
             errStr = (error as { message: string }).message;
           }
-          logger.error("multiRequest error:", errStr, "from subject", subject, "with payload", payload);
+          //logger.error("multiRequest error:", errStr, "from subject", subject, "with payload", payload);
           throw error;
         }
       }
@@ -131,7 +131,7 @@ const requestMulti = async (
         // It's not ideal to resend the message to all subscribers when only one failed to
         // respond, but there is no way to know which subscriber failed or to re-send to only one
         // subscriber.
-        logger.debug("NATS returned code 503, ServiceUnavailableError.  Trying again.");
+        //logger.debug("NATS returned code 503, ServiceUnavailableError.  Trying again.");
         continue;
       }
       //waitAllReceivedResolve(expected);
@@ -149,7 +149,7 @@ const requestMulti = async (
     throw new Error("NATS multi-request timeout");
   }
 
-  logger.debug(`NATS requestMulti returning ${responses}`);
+  //logger.debug(`NATS requestMulti returning ${responses}`);
   return responses;
 };
 

@@ -25,7 +25,8 @@
   "homepage": "https://github.com/roguh/nats-request-multi-js#readme",
   "dependencies": {
     "await-timeout": "^1.1.1",
-    "nats": "^2.1.0",
+    "env-var": "^7.4.1",
+    "nats": "^2.6.0",
     "typescript": "^4.3.5"
   },
   "devDependencies": {

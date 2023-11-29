@@ -1,6 +1,7 @@
 import Timeout from "await-timeout";
 import { NatsError, Msg, NatsConnection, Subscription } from "nats";
-/*import * as env from "env-var";
+import * as env from "env-var";
+/*
 import * as fs from 'fs';
 import { configure, getLogger } from "log4js";
 
@@ -24,6 +25,7 @@ configure({
 });
 const logger = getLogger();*/
 
+const NATS_REQUEST_MULTI_RETRIES = env.get("NATS_REQUEST_MULTI_RETRIES").default(1).asInt();
 export const requestMultiCallback =
   (
     responses: Msg[],
@@ -49,11 +51,18 @@ const requestMulti = async (
   nc: NatsConnection,
   subject: string,
   payload: Uint8Array,
-  { timeout = 0.5, expected = 1 }: { timeout?: number; expected?: number } = {}
+  { timeout = 0.5, expected = 1 }: { timeout?: number; expected?: number } = {},
+  retries: number | null = null
 ): Promise<Msg | Msg[]> => {
   //logger.info("requestMulti starting with subject", subject, "payload", payload, "timeout", timeout, "expected", expected);
 
   if (expected < 1) {
+    throw new Error("expected cannot be less than one")
+  }
+  if(retries === null) {
+    retries = NATS_REQUEST_MULTI_RETRIES
+  }
+  if(retries < 0) {
     throw new Error("expected cannot be less than one")
   }
 
@@ -86,13 +95,15 @@ const requestMulti = async (
     await Timeout.set(10)
   }
 
-  for(let i=0; i<50; i++) {
+  let i = 0;
+  while(true) {
+    i++;
     if (expected === 1) {
       try {
         const msg = await nc.request(subject, payload, {timeout});
         return msg;
       } catch (error) {
-        if (i < 49 && error && typeof error == "object" && "code" in error && error.code === "503") {
+        if (i < retries + 1 && error && typeof error == "object" && "code" in error && error.code === "503") {
           //logger.debug("NATS returned code 503, ServiceUnavailableError.  Trying again.");
           continue;
         }
@@ -127,7 +138,7 @@ const requestMulti = async (
         }
       }
 
-      if (i < 49 && natsError && natsError.code === "503") {
+      if (i < retries + 1 && natsError && natsError.code === "503") {
         // It's not ideal to resend the message to all subscribers when only one failed to
         // respond, but there is no way to know which subscriber failed or to re-send to only one
         // subscriber.
